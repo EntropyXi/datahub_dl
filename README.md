@@ -1,0 +1,238 @@
+# Simple Deep Learning Project（教学示例）
+
+这是一个用于**深度学习新人入门**的示例项目，目标不是讲复杂原理，而是帮助你快速掌握：
+
+- ✅ 如何搭建深度学习项目结构  
+- ✅ 如何运行一个完整的训练流程  
+- ✅ 如何在不乱改代码的前提下完成实验  
+
+本项目基于 **PyTorch**，采用**模块化工程结构**，适合作为：
+- 新人入门练习
+- 课程教学示例
+- 项目模板起点
+
+---
+
+## 一、项目结构说明
+
+```text
+simple_dl_project/
+├── configs/                # 配置文件（⭐新人最常修改）
+│   ├── cnn.yaml           # CNN模型配置
+│   └── resnet.yaml        # ResNet模型配置
+│
+├── data/                   # 数据加载相关
+│   ├── dataloader.py      # 数据加载器
+│   └── MNIST/             # MNIST数据集存储位置（自动下载）
+│
+├── models/                 # 模型定义
+│   ├── cnn.py             # CNN模型实现
+│   └── resnet.py          # ResNet模型实现
+│
+├── trainer/                # 训练器逻辑
+│   └── base.py            # 基础训练器类
+│
+├── utils/                  # 工具函数
+│   ├── logger.py          # 日志记录工具
+│   └── seed.py            # 随机种子设置
+│
+├── checkpoints/            # 模型检查点保存目录
+│   ├── cnn/
+│   └── resnet/
+├── main.py                 # ⭐ 程序入口（直接运行）
+├── requirements.txt        # 依赖列表
+└── README.md
+```
+
+### 📌 修改原则（非常重要）
+
+| 文件 / 目录               | 是否允许修改    |
+| ------------------------- | -------------- |
+| `configs/*.yaml`          | ✅ 经常修改     |
+| `models/`                 | ⚠️ 进阶后修改   |
+| `trainer/`                | ❌ 初学阶段不要改|
+| `main.py`                 | ❌ 不要随意改   |
+
+
+---
+
+## 二、环境准备
+
+### 1️⃣ 创建 Conda 环境（推荐）
+
+```bash
+conda create -n simple-dl python=3.9 -y
+conda activate simple-dl
+```
+
+### 2️⃣ 安装依赖
+
+```bash
+自行完成GPU版本的PyTorch安装
+
+```
+
+依赖列表 (`requirements.txt`)：
+- torch
+- torchvision
+- pyyaml
+
+> 如果你有 GPU 且安装了 CUDA，请确保 PyTorch 支持 CUDA：
+
+```bash
+python -c "import torch; print(torch.cuda.is_available())"
+```
+
+---
+
+## 三、如何运行项目
+
+在项目根目录下执行：
+
+```bash
+python main.py --config configs/cnn.yaml
+```
+
+
+正常情况下你将看到类似输出：
+
+```text
+PyTorch 版本: 2.x.x
+CUDA 是否可用: True
+CUDA 版本 (torch 编译时用的): 11.8
+当前 GPU 名称: GeForce RTX xx
+Epoch [1] | Train Loss: 0.35 | Val Acc: 0.90
+Epoch [2] | Train Loss: 0.21 | Val Acc: 0.94
+...
+```
+
+这说明：
+
+* 数据加载成功
+* 模型正常训练
+* 验证流程正常
+
+---
+
+## 四、配置文件说明
+
+项目包含两个配置文件：
+- `configs/cnn.yaml` - 适用于CNN模型的配置
+- `configs/resnet.yaml` - 适用于ResNet模型的配置
+
+```yaml
+# configs/resnet.yaml 示例
+seed: 42                 # 随机种子
+
+device: cuda             # cuda / cpu
+
+save_dir: ./checkpoints  # 模型保存目录
+save_interval: 5         # 每多少个 epoch 保存一次 last.pth
+exp_name: resnet         # 实验名称，留空会自动生成时间戳
+
+train:
+  epochs: 10
+  lr: 0.001
+  batch_size: 128
+
+model:
+  name: resnet           # 模型名称 (cnn 或 resnet)
+  params:
+    num_classes: 10      # 分类数量
+
+data:
+  root: ./data           # 数据集存储路径
+```
+
+
+
+
+---
+
+## 五、支持的模型
+
+本项目提供了两种模型实现：
+
+### 1. SimpleCNN (`models/cnn.py`)
+- 一个简单但效果不错的CNN，适合MNIST手写数字分类
+- 参数少、训练快、测试准确率轻松99%+
+- 包含BatchNorm、多种激活函数选项(gelu/relu/silu)等现代设计
+
+### 2. ResNet (`models/resnet.py`)
+- 实现了基本的ResNet架构，包含残差块
+- 适合学习残差网络的设计思想
+- 包含shortcut连接以解决梯度消失问题
+
+可以通过修改配置文件中的`model.name`字段来切换模型。
+
+---
+
+## 六、训练器功能
+
+BaseTrainer类(`trainer/base.py`)提供以下功能：
+- 自动检测设备(CPU/GPU)
+- 模型训练和验证
+- 检查点保存(包括最佳模型和最新模型)
+- 日志记录
+- 实验配置保存
+
+训练过程中会自动保存模型到checkpoints目录下的对应子目录中。
+
+---
+
+## 七、数据加载
+
+项目使用MNIST数据集进行训练和测试，数据加载器会自动下载数据集到指定目录。
+
+- 训练集: 60,000张图像
+- 测试集: 10,000张图像
+- 图像尺寸: 28x28灰度图
+- 类别数: 10 (数字0-9)
+
+---
+
+## 八、代码整体流程
+
+```text
+读取配置
+   ↓
+加载数据
+   ↓
+创建模型
+   ↓
+定义 loss & optimizer
+   ↓
+for epoch:
+    训练一轮
+    验证准确率
+    保存检查点(如果需要)
+```
+
+你只需要记住一句话：
+
+> **main.py 负责"调度"，其他模块负责"干活"。**
+
+---
+
+## 十、作业：
+* 一、将代码跑通,自己处理报错
+
+* 二、在main.py中添加一个函数，可以将一些样本展示出来（提示：使用matplotlib.pyplot）
+
+
+* 二、将代码过一遍，要能够说明每个模块的作用是什么，以及一个深度学习模型的训练流程
+
+* 三、models文件夹里面有两个模型，我们训练用的是SimpleCNN，你需要观察代码，调用ResNet模型（提示：观察trainer/base.py中的模型创建部分）。相关参数在configs/resnet.yaml中。
+
+* 四、模型训练完后，会在checkpoints目录下保存模型训练文件（包括模型参数、优化器状态、训练配置等）。你需要写一个函数，调用模型推理（inference），输入一张图片，输出模型的预测结果。
+
+
+
+
+
+
+
+
+
+通过这些练习，你将逐步熟悉深度学习项目的各个组成部分及其相互关系。
+        
