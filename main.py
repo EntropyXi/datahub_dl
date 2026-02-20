@@ -2,6 +2,7 @@ import argparse
 import yaml
 from data.dataloader import get_dataloader
 from trainer.base import BaseTrainer
+from trainer.vae import VAETrainer
 import torch
 from matplotlib import pyplot as plt
 from inference.inference import predict_batch, predict_single_image
@@ -88,7 +89,7 @@ def main():
     train_loader, test_loader = get_dataloader(config)
 
     # 训练器
-    trainer = BaseTrainer(
+    trainer = VAETrainer(
         config=config,
         train_loader=train_loader,
         val_loader=test_loader,
